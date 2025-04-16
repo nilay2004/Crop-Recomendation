@@ -3,15 +3,16 @@ pipeline {
 
     environment {
         VENV_DIR = 'venv'
-        PYTHON = "${VENV_DIR}\\Scripts\\python.exe"
-        PIP = "${VENV_DIR}\\Scripts\\pip.exe"
+        PYTHON_BIN = 'C:\\Python310\\python.exe'
+        PIP_BIN = 'venv\\Scripts\\pip.exe'
+        PYTHON_VENV_BIN = 'venv\\Scripts\\python.exe'
     }
 
     stages {
         stage('Clone Repo') {
             steps {
                 echo '📥 Cloning GitHub repository...'
-                // Jenkins SCM plugin handles cloning
+                // Jenkins handles SCM checkout
             }
         }
 
@@ -19,9 +20,9 @@ pipeline {
             steps {
                 echo '📦 Setting up virtual environment and installing dependencies...'
                 bat """
-                    python -m venv %VENV_DIR%
-                    %PIP% install --upgrade pip
-                    %PIP% install -r requirements.txt
+                    "%PYTHON_BIN%" -m venv %VENV_DIR%
+                    %PIP_BIN% install --upgrade pip
+                    %PIP_BIN% install -r requirements.txt
                 """
             }
         }
@@ -30,7 +31,7 @@ pipeline {
             steps {
                 echo '🤖 Verifying model loading...'
                 bat """
-                    %PYTHON% -c "import pickle; pickle.load(open('RF.pkl', 'rb')); print('Model Loaded Successfully ✅')"
+                    %PYTHON_VENV_BIN% -c "import pickle; pickle.load(open('RF.pkl', 'rb')); print('Model Loaded Successfully ✅')"
                 """
             }
         }
@@ -39,7 +40,7 @@ pipeline {
             steps {
                 echo '🧪 Running app.py for basic check...'
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    bat "%PYTHON% app.py"
+                    bat "%PYTHON_VENV_BIN% app.py"
                 }
             }
         }
@@ -50,7 +51,6 @@ pipeline {
             }
             steps {
                 echo '🚀 Simulating deployment...'
-                // Add real deployment logic here if needed
             }
         }
     }
