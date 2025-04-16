@@ -3,47 +3,54 @@ pipeline {
 
     environment {
         VENV_DIR = 'venv'
+        PYTHON = "${VENV_DIR}\\Scripts\\python.exe"
+        PIP = "${VENV_DIR}\\Scripts\\pip.exe"
     }
 
     stages {
         stage('Clone Repo') {
             steps {
                 echo '📥 Cloning GitHub repository...'
-                // Git clone happens automatically by Jenkins from SCM config
+                // Jenkins SCM plugin handles cloning
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Setup Environment') {
             steps {
-                echo '📦 Creating and setting up virtual environment...'
-                sh 'python3 -m venv ${VENV_DIR}'
-                sh './${VENV_DIR}/bin/pip install --upgrade pip'
-                sh './${VENV_DIR}/bin/pip install -r requirements.txt'
+                echo '📦 Setting up virtual environment and installing dependencies...'
+                bat """
+                    python -m venv %VENV_DIR%
+                    %PIP% install --upgrade pip
+                    %PIP% install -r requirements.txt
+                """
             }
         }
 
-        stage('Run Model Script') {
+        stage('Verify Model Load') {
             steps {
-                echo '🤖 Testing model loading...'
-                sh './${VENV_DIR}/bin/python -c "import pickle; pickle.load(open(\'RF.pkl\', \'rb\')); print(\'Model Loaded Successfully ✅\')"'
+                echo '🤖 Verifying model loading...'
+                bat """
+                    %PYTHON% -c "import pickle; pickle.load(open('RF.pkl', 'rb')); print('Model Loaded Successfully ✅')"
+                """
             }
         }
 
-        stage('Run Tests') {
+        stage('Run App Test') {
             steps {
-                echo '🧪 Running app.py test script...'
-                // A simple dry-run of the script (you can add custom test cases here too)
-                sh './${VENV_DIR}/bin/python app.py || true'
+                echo '🧪 Running app.py for basic check...'
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    bat "%PYTHON% app.py"
+                }
             }
         }
 
-        stage('Deploy (optional)') {
+        stage('Deploy (Optional)') {
             when {
-                expression { return fileExists('webapp.py') }
+                expression { fileExists('webapp.py') }
             }
             steps {
-                echo '🚀 Simulating deployment (custom logic can be added here)'
-                // Placeholder for real deployment (e.g., scp to EC2, or Docker run)
+                echo '🚀 Simulating deployment...'
+                // Add real deployment logic here if needed
             }
         }
     }
@@ -53,7 +60,7 @@ pipeline {
             echo '✅ CI Pipeline executed successfully!'
         }
         failure {
-            echo '❌ Build failed. Please check the logs.'
+            echo '❌ Build failed. Check logs for details.'
         }
     }
 }
