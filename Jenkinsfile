@@ -9,7 +9,7 @@ pipeline {
         stage('Clone Repo') {
             steps {
                 echo '📥 Cloning GitHub repository...'
-                // Jenkins handles SCM checkout automatically
+                git url: 'https://github.com/nilay2004/Crop-Recomendation.git', branch: 'main'
             }
         }
 
