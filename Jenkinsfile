@@ -2,27 +2,23 @@ pipeline {
     agent any
 
     environment {
-        VENV_DIR = 'venv'
-        PYTHON_BIN = 'C:\\Python310\\python.exe'
-        PIP_BIN = 'venv\\Scripts\\pip.exe'
-        PYTHON_VENV_BIN = 'venv\\Scripts\\python.exe'
+        PYTHON_BIN = 'C:\\Users\\dell\\AppData\\Local\\Programs\\Python\\Python312\\python.exe'
     }
 
     stages {
         stage('Clone Repo') {
             steps {
                 echo '📥 Cloning GitHub repository...'
-                // Jenkins handles SCM checkout
+                git branch: 'main', url: 'https://github.com/nilay2004/Crop-Recomendation.git'
             }
         }
 
-        stage('Setup Environment') {
+        stage('Install Dependencies') {
             steps {
-                echo '📦 Setting up virtual environment and installing dependencies...'
+                echo '📦 Installing dependencies...'
                 bat """
-                    "%PYTHON_BIN%" -m venv %VENV_DIR%
-                    %PIP_BIN% install --upgrade pip
-                    %PIP_BIN% install -r requirements.txt
+                    "%PYTHON_BIN%" -m pip install --upgrade pip
+                    "%PYTHON_BIN%" -m pip install -r requirements.txt
                 """
             }
         }
@@ -31,7 +27,7 @@ pipeline {
             steps {
                 echo '🤖 Verifying model loading...'
                 bat """
-                    %PYTHON_VENV_BIN% -c "import pickle; pickle.load(open('RF.pkl', 'rb')); print('Model Loaded Successfully ✅')"
+                    "%PYTHON_BIN%" -c "import pickle; pickle.load(open('model.pkl', 'rb')); print('Model Loaded Successfully ✅')"
                 """
             }
         }
@@ -40,7 +36,7 @@ pipeline {
             steps {
                 echo '🧪 Running app.py for basic check...'
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    bat "%PYTHON_VENV_BIN% app.py"
+                    bat "\"%PYTHON_BIN%\" app.py"
                 }
             }
         }
@@ -51,6 +47,7 @@ pipeline {
             }
             steps {
                 echo '🚀 Simulating deployment...'
+                // Add deployment logic here if needed
             }
         }
     }
