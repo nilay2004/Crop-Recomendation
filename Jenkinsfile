@@ -25,9 +25,9 @@ pipeline {
 
         stage('Verify Model Load') {
             steps {
-                echo '🤖 Verifying model loading...'
+                echo '🤖 Verifying RF.pkl model loading...'
                 bat """
-                    "%PYTHON_BIN%" -c "import pickle; pickle.load(open('model.pkl', 'rb')); print('Model Loaded Successfully ✅')"
+                    "%PYTHON_BIN%" -c "import pickle; pickle.load(open('RF.pkl', 'rb')); print('Model Loaded Successfully ✅')"
                 """
             }
         }
