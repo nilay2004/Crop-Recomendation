@@ -9,13 +9,13 @@ pipeline {
         stage('Clone Repo') {
             steps {
                 echo '📥 Cloning GitHub repository...'
-                git branch: 'main', url: 'https://github.com/nilay2004/Crop-Recomendation.git'
+                // Jenkins handles SCM checkout automatically
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                echo '📦 Installing dependencies...'
+                echo '📦 Installing Python dependencies...'
                 bat """
                     "%PYTHON_BIN%" -m pip install --upgrade pip
                     "%PYTHON_BIN%" -m pip install -r requirements.txt
@@ -27,7 +27,7 @@ pipeline {
             steps {
                 echo '🤖 Verifying RF.pkl model loading...'
                 bat """
-                    "%PYTHON_BIN%" -c "import pickle; pickle.load(open('RF.pkl', 'rb')); print('Model Loaded Successfully ✅')"
+                    "%PYTHON_BIN%" -c "import warnings; warnings.filterwarnings('ignore'); import pickle; pickle.load(open('RF.pkl', 'rb')); print('Model Loaded Successfully')"
                 """
             }
         }
@@ -36,7 +36,9 @@ pipeline {
             steps {
                 echo '🧪 Running app.py for basic check...'
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    bat "\"%PYTHON_BIN%\" app.py"
+                    bat """
+                        "%PYTHON_BIN%" app.py
+                    """
                 }
             }
         }
@@ -47,7 +49,6 @@ pipeline {
             }
             steps {
                 echo '🚀 Simulating deployment...'
-                // Add deployment logic here if needed
             }
         }
     }
